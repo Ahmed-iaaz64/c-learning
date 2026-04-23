@@ -30,6 +30,16 @@ void add_node(struct linked_list *head, int x) {
 	}
 }
 
+void free_list(struct linked_list *head) {
+	struct linked_list *current = head;
+	struct linked_list *next = head;
+	while (current != NULL) {
+		next = current->next;
+		free(current);
+		current = next;
+	}
+}
+
 int main() {
 	struct linked_list *node1 = malloc(sizeof(struct linked_list));
 	node1->value = 10;
@@ -43,4 +53,5 @@ int main() {
 	print_list(node1);
 	add_node(node1, 30);
 	print_list(node1);
+	free_list(node1);
 }
