@@ -12,11 +12,13 @@ int clients[MAX_CLIENTS];
 int client_count = 0;
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void broadcast(char *message, int sender_fd) {
+void broadcast(char *message, char *username, int sender_fd) {
 	pthread_mutex_lock(&clients_mutex);
+	char result[1060];
 	for (int i = 0; i < client_count; i++) {
 		if (clients[i] != sender_fd) {
-			write(clients[i], message, strlen(message));
+			sprintf(result, "%s: %s", username, message);
+			write(clients[i], result, strlen(result));
 		}
 	}
 	pthread_mutex_unlock(&clients_mutex);
@@ -53,11 +55,18 @@ void *handle_client(void *arg) {
 	
 	char buffer[1024];
 	int bytes;
+	char username[32];
+	char *name_prompt = "Username: ";
+	
+	write(client_fd, name_prompt, strlen(name_prompt));
+	read(client_fd, username, sizeof(username) - 1);
+	username[strcspn(username, "\n")] = '\0'; 
+	printf("%s", username);
 
 	while ((bytes = read(client_fd, buffer, sizeof(buffer) - 1)) > 0) {
 		buffer[bytes] = '\0';
 		printf("message: %s", buffer);
-		broadcast(buffer, client_fd);
+		broadcast(buffer, username, client_fd);
 	}
 
 	remove_client(client_fd);
